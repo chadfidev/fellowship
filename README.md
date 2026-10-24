@@ -57,7 +57,7 @@ The assistant is instructed to enroll a project as part of authorized coding wor
 
 Frodo and Sam also have `-important` variants that use the strong profile: **12 native profiles per application**. Roles are available when useful; they are not a continuously running swarm. The main assistant is already Gandalf.
 
-[`models.json`](models.json) controls routing. Defaults are Sol 6.1 / Opus for strong work and GPT-6 Luna / Haiku for economy and ordinary coding. These are configurable defaults, not guarantees that an account has those models. Set available native model identifiers before installing; unavailable models must be reported rather than silently replaced or billed through another authentication route. This release retains an explicit Astra restriction in its routing policy.
+[`models.json`](models.json) controls routing. Defaults are Sol 6.1 / Opus for strong work and GPT-6 Luna / Haiku for economy and ordinary coding. All Codex profiles default to high reasoning effort. These are configurable defaults, not guarantees that an account has those models. Set available native model identifiers before installing; unavailable models must be reported rather than silently replaced or billed through another authentication route. This release retains an explicit Astra restriction in its routing policy.
 
 To change your coder after benchmarks, edit the source `coder` profile, rerun `install`, and explicitly rerun `onboard` for each project snapshot you want refreshed. Reviewers stay strong. Running assignments retain their recorded routing.
 

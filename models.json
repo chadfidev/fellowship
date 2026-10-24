@@ -2,7 +2,7 @@
   "version": 1,
   "profiles": {
     "strong": {"codex": "gpt-6.1-sol", "claude": "opus", "effort": "high"},
-    "economy": {"codex": "gpt-6-luna", "claude": "haiku", "effort": "medium"},
-    "coder": {"codex": "gpt-6-luna", "claude": "haiku", "effort": "medium"}
+    "economy": {"codex": "gpt-6-luna", "claude": "haiku", "effort": "high"},
+    "coder": {"codex": "gpt-6-luna", "claude": "haiku", "effort": "high"}
   }
 }

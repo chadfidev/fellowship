@@ -24,7 +24,7 @@ Exact Claude versions and account availability are resolved at use time. These a
 
 Gandalf assigns strong workers for ambiguous behavior, cross-module changes, security, money, migrations, or data-loss risk. A tiny diff can still be important. Economy agents escalate missing requirements or consequential decisions rather than guessing. Keep the independent reviewer strong even when the worker is cheap or local.
 
-Prefer deliberate effort selection: medium for clear implementation and bounded review, high for consequential design or difficult review, when the runtime supports those values. This is a coordinator default, not a claim that effort values are equivalent across providers. Do not override the user's explicit selection or restriction. If the desired model is unavailable, stop dispatch and ask for or use an already authorized alternative; record it. Avoid silent upgrades or degraded review.
+The installed Codex defaults use high effort for strong, economy, and coder profiles. Prefer deliberate effort selection for task-specific overrides when the runtime supports them; effort values are not equivalent across providers. Do not override the user's explicit selection or restriction. If the desired model is unavailable, stop dispatch and ask for or use an already authorized alternative; record it. Avoid silent upgrades or degraded review.
 
 **Astra remains prohibited unless the user explicitly selects it as the active Codex model for the current work.** Task importance, historical use, and fallback needs do not grant that selection.
 
