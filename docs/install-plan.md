@@ -1,5 +1,7 @@
 # Fellowship Codex and Claude Code installation plan
 
+> Historical plan for the original local installation. This document is not a current task list or authorization to install into real application homes, access a pilot project, resume work, or publish anything. Follow the current user request and repository instructions. Shipped capabilities and limits are documented in `skill/INSTALLATION.md`; the original pilot was separate from this public repository.
+
 **Goal:** Install the approved Fellowship behavior in Codex and Claude Code, preserve their existing customization, and prove a bounded Agentic Wars handoff and pause.
 
 **Architecture:** Independent native skills and role definitions, rendered from this source project. A small standard-library Python helper manages opt-in repo enrollment, local shared pause state, and native lifecycle hooks. Project snapshots pin the behavioral contract; hooks are cooperative guardrails, not a remote process supervisor.
@@ -26,7 +28,7 @@
 4. Reviewer models stay strong and reviewer authorship stays independent; cheap role defaults do not force important work onto a cheap model.
 5. Portability is proved with actual native role discovery and a bounded cross-tool pilot; runtime gaps and trust requirements are explicit.
 
-## Execution
+## Historical execution checklist
 
 - [ ] Write behavioral tests before the installer/runtime; record the missing-behavior failure.
 - [ ] Implement installation, native role rendering, managed instruction blocks, and preservation checks.
@@ -37,4 +39,4 @@
 - [ ] Run three independent final panels: native integration/model boundaries, shutdown/handoff failure modes, and permissions/portability/skill compatibility. Fix blockers and re-review affected final content.
 - [ ] Remove only task-owned scratch, stopped temporary processes, and disposable test fixtures. Keep source, installations, project snapshots, and final evidence.
 
-The user explicitly approved this installation and pilot. Execute continuously; no additional routine confirmation is needed. Keep source and app changes inspectable and record exact test/review evidence.
+The original installation and pilot had session-specific user approval. That approval does not transfer to readers of this repository or authorize repeating the historical steps. Obtain scope from the current user request; preserve existing approvals only when they actually apply to that request.
