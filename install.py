@@ -137,7 +137,7 @@ def hook_config(existing, script, provider):
     config = json.loads(json.dumps(existing))
     command = shlex.join([shutil.which('python3') or sys.executable, str(script), 'hook', '--provider', provider])
     group = {'hooks': [{'type': 'command', 'command': command, 'timeout': 3}]}
-    for event in EVENTS:
+    for event in EVENTS + (['PostToolUseFailure', 'PermissionDenied'] if provider == 'claude' else []):
         rows = config.setdefault('hooks', {}).setdefault(event, [])
         preserved = []
         for row in rows:
@@ -194,7 +194,7 @@ Read existing project instructions and the latest governing execution boundary f
 
 The main assistant is Gandalf. Model routing is pinned in `models.json`; important worker variants use strong models. Existing user approvals persist. Fellowship governs coordination/routing/handoff/bedtime; Superpowers techniques and Ponytail restraint apply within the approved task. A role is not additional authorization.
 
-Local control: `python3 .fellowship/scripts/fellowship.py status --project .`, `bedtime --project .`, or `resume --project .` after explicit user resume. Registered native sessions share pause state across local worktrees in the Git common directory. Hooks block supported new work while paused; they do not kill processes or guarantee remote shutdown. Preserve rich task intent/next actions in the project's current handoff as well as mechanical checkpoints.
+Local control: `python3 .fellowship/scripts/fellowship.py status --project .` or `checkpoint --project . --note 'next action'` uses the project helper when it matches the trusted installed helper. Use `bedtime --project .` to pause. In a paused hooked chat, the user must send the standalone `resume fellowship` command (or supported `/fellowship resume`); longer prose does not implicitly clear the guard and the agent cannot self-resume through Bash. From the user's own terminal, `resume --project .` is available after deciding to resume. Registered native sessions share pause state across local worktrees in the Git common directory. Hooks block supported new work while paused; they do not kill processes or guarantee remote shutdown. Preserve rich task intent/next actions in the project's current handoff as well as mechanical checkpoints.
 
 Codex/Claude global installs supply lifecycle hooks. A collaborator can load the project-local native roles and contracts from a clean clone; install their own trusted hooks before claiming cooperative pause enforcement. Each collaborator uses their own credentials. Do not share private saves or account state.
 ''').encode()

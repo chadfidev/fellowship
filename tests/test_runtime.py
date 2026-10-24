@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -124,6 +125,44 @@ class RuntimeTests(unittest.TestCase):
         self.hook('Stop')
         self.run_cli('bedtime')
         self.assertEqual(self.run_cli('status')['status'], 'paused')
+
+    def test_claude_failed_or_denied_tools_reach_confirmed_stop(self):
+        for terminal in ('PostToolUseFailure', 'PermissionDenied'):
+            self.hook('PreToolUse', provider='claude', tool_name='Read', tool_use_id=terminal, tool_input={})
+            self.hook(terminal, provider='claude', tool_name='Read', tool_use_id=terminal, tool_input={})
+        self.hook('Stop', provider='claude')
+        self.run_cli('bedtime')
+        self.assertEqual(self.run_cli('status')['status'], 'paused')
+
+    def test_claude_background_child_does_not_reactivate_stopped_parent(self):
+        self.hook('UserPromptSubmit', provider='claude', prompt='Do the bounded read-only task.')
+        self.hook('SubagentStart', provider='claude', agent_id='c1', agent_type='legolas')
+        self.hook('Stop', provider='claude')
+        self.hook('PreToolUse', provider='claude', agent_id='c1', tool_name='Read', tool_use_id='c-read', tool_input={})
+        self.hook('PostToolUse', provider='claude', agent_id='c1', tool_name='Read', tool_use_id='c-read', tool_input={})
+        self.hook('SubagentStop', provider='claude', agent_id='c1', agent_type='legolas')
+        self.run_cli('bedtime')
+        self.assertEqual(self.run_cli('status')['status'], 'paused')
+
+    def test_paused_guard_accepts_only_matching_owned_project_helper(self):
+        target = self.repo / '.fellowship/scripts/fellowship.py'
+        target.parent.mkdir()
+        shutil.copyfile(SCRIPT, target)
+        self.run_cli('bedtime')
+        import shlex
+        command = shlex.join([sys.executable, str(target), 'checkpoint', '--project', str(self.repo), '--note', 'Preserve the task intent.'])
+        r = self.hook('PreToolUse', tool_name='Bash', tool_use_id='checkpoint1', tool_input={'command': command})
+        self.assertNotEqual(r.get('hookSpecificOutput', {}).get('permissionDecision'), 'deny')
+        self.hook('PostToolUse', tool_name='Bash', tool_use_id='checkpoint1', tool_input={})
+        target.write_text(target.read_text() + '\nprint("unreviewed project helper")\n')
+        r = self.hook('PreToolUse', tool_name='Bash', tool_use_id='checkpoint2', tool_input={'command': command})
+        self.assertEqual(r.get('hookSpecificOutput', {}).get('permissionDecision'), 'deny')
+
+    def test_nonobject_enrollment_fails_closed(self):
+        for value in ([], None):
+            (self.repo / '.fellowship/project.json').write_text(json.dumps(value))
+            r = self.hook('PreToolUse', tool_name='Bash', tool_use_id='t1', tool_input={'command': 'echo work'})
+            self.assertEqual(r.get('hookSpecificOutput', {}).get('permissionDecision'), 'deny')
 
 
 if __name__ == '__main__':

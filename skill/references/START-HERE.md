@@ -9,7 +9,7 @@ This pack defines portable behavior. The current installation targets Codex and 
 ## Read the smallest useful part
 
 - For every participant: [protocol.md](protocol.md).
-- For model selection: [models.md](models.md), the single routing source.
+- For model selection intent: [models.md](models.md); edit the source project's `models.json` for actual routing.
 - For an assignment: the relevant role below and [task.md](templates/task.md).
 - For returning to a project: [checkpoint.md](templates/checkpoint.md).
 - For installing and proving this across tools: [adoption-plan.md](adoption-plan.md).
@@ -32,7 +32,7 @@ These are nine responsibilities across ten names. They are available roles, not 
 
 - **Bedtime:** checkpoint promptly and stop development work; leave review, merging, and new tasks for later.
 - **Resume:** reconcile the current checkout, ownership, and checkpoint before continuing the authorized scope.
-- **Change coder model:** update the worker routing in `models.md`, verify actual availability, then use it for new assignments. Running assignments keep their recorded routing unless deliberately stopped and reassigned.
+- **Change coder model:** update the source `coder` profile in `models.json`, reinstall, and explicitly refresh selected project snapshots. Verify actual availability before new assignments. Running assignments keep their recorded routing unless deliberately stopped and reassigned.
 
 The user evaluates observable outcomes. Agents provide implementation, verification, and review evidence. A passed automated check or another agent's approval does not establish that the user accepts the experience.
 

@@ -41,6 +41,8 @@ class InstallTests(unittest.TestCase):
             self.assertEqual(updated['theme'], 'dark')
             self.assertEqual(updated['hooks']['Stop'][0], settings['hooks']['Stop'][0])
             self.assertEqual(len(updated['hooks']['Stop']), 2)
+            self.assertIn('PostToolUseFailure', updated['hooks'])
+            self.assertIn('PermissionDenied', updated['hooks'])
             updated['hooks']['Stop'][-1]['hooks'].append({'type': 'command', 'command': 'peer-hook-in-shared-group'})
             (claude / 'settings.json').write_text(json.dumps(updated))
             result = subprocess.run(command, capture_output=True, text=True)

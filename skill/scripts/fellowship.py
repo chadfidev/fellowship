@@ -34,7 +34,7 @@ def project(cwd):
     if not marker.is_file():
         return None
     config = json.loads(marker.read_text())
-    if config.get('version') != 1 or config.get('enabled') is not True:
+    if not isinstance(config, dict) or config.get('version') != 1 or config.get('enabled') is not True:
         raise ValueError('Unsupported or disabled Fellowship enrollment')
     return root, common / 'fellowship'
 
@@ -124,7 +124,12 @@ def checkpoint_control(payload, root):
         return False
     if len(parts) < 3 or parts[0] not in ('python3', sys.executable, shutil.which('python3')):
         return False
-    if Path(parts[1]).resolve() != Path(__file__).resolve() or parts[2] not in ('status', 'checkpoint'):
+    candidate = Path(parts[1]).resolve()
+    trusted = Path(__file__).resolve()
+    local = root / '.fellowship/scripts/fellowship.py'
+    if candidate != trusted and (local.is_symlink() or candidate != local or not local.is_file() or local.read_bytes() != trusted.read_bytes()):
+        return False
+    if parts[2] not in ('status', 'checkpoint'):
         return False
     parser = cli_parser()
     try:
@@ -150,6 +155,8 @@ def hook(payload, provider):
     if not isinstance(session, str) or not session:
         raise ValueError('Fellowship hook received no session identity')
     identity = f'{provider}:{session}'
+    if event in ('PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'PermissionDenied') and payload.get('agent_id'):
+        identity = f"{provider}:{payload['agent_id']}"
     with locked(directory) as state:
         row = state['sessions'].setdefault(identity, {'state': 'idle', 'inflight': {}, 'worktree': str(root)})
         row['last_seen'] = now()
@@ -184,13 +191,13 @@ def hook(payload, provider):
             # Spawn lifetime is tracked by SubagentStart/Stop, not its creation call.
             if tool_id and tool not in ('Agent', 'spawn_agent', 'collaborationspawn_agent'):
                 row['inflight'][str(tool_id)] = payload.get('tool_name', 'unknown')
-        elif event == 'PostToolUse':
+        elif event in ('PostToolUse', 'PostToolUseFailure', 'PermissionDenied'):
             row['inflight'].pop(str(payload.get('tool_use_id', '')), None)
         elif event in ('Stop', 'SessionEnd', 'Interrupt'):
             row['state'] = 'idle'
             state['checkpoints'][identity] = snapshot(root, 'Native stop checkpoint. Preserve the listed checkout; resume only authorized scope and consult the task packet.')
-        if state['pause_requested'] and event in ('SessionStart', 'UserPromptSubmit', 'SubagentStart', 'PostToolUse'):
-            return context(event, 'Fellowship bedtime is active: checkpoint promptly and stop. Do not start review, merge, or new work. Unacknowledged sessions or in-flight operations remain stop-unconfirmed. Application services are separate. Explicit /fellowship resume is required to continue.')
+        if state['pause_requested'] and event in ('SessionStart', 'UserPromptSubmit', 'SubagentStart', 'PostToolUse', 'PostToolUseFailure'):
+            return context(event, 'Fellowship bedtime is active: checkpoint promptly and stop. Do not start review, merge, or new work. Unacknowledged sessions or in-flight operations remain stop-unconfirmed. Application services are separate. Send the standalone user command resume fellowship to continue.')
         if event == 'SessionStart':
             return context(event, 'Fellowship project enrolled. Read .fellowship/README.md, preserve the current project execution boundary, and use the named roles only when useful. Superpowers techniques and Ponytail restraint apply inside the approved task. This session is registered for local cooperative pause.')
     return {}
