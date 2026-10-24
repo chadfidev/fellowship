@@ -160,6 +160,8 @@ def hook(payload, provider):
     with locked(directory) as state:
         row = state['sessions'].setdefault(identity, {'state': 'idle', 'inflight': {}, 'worktree': str(root)})
         row['last_seen'] = now()
+        if event in ('PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'PermissionDenied'):
+            row['worktree'] = str(root)
         if event == 'UserPromptSubmit':
             row['state'] = 'active'
             prompt = payload.get('prompt', '').strip().lower().rstrip('.!')
@@ -179,8 +181,11 @@ def hook(payload, provider):
             child = payload.get('agent_id')
             child_row = state['sessions'].get(f'{provider}:{child}')
             if child_row:
+                checkout = project(child_row['worktree'])
+                if checkout is None or checkout[1] != directory:
+                    raise ValueError('Child checkout is unavailable or belongs to a different repository')
+                state['checkpoints'][f'{provider}:{child}'] = snapshot(checkout[0], 'Native subagent stop; inspect its task packet and native history on resume.')
                 child_row['state'] = 'idle'
-                state['checkpoints'][f'{provider}:{child}'] = snapshot(root, 'Native subagent stop; inspect its task packet and native history on resume.')
         elif event == 'PreToolUse':
             tool = payload.get('tool_name', '')
             permitted = tool in ('Read', 'Glob', 'Grep', 'read', 'glob', 'grep', 'interrupt_agent', 'list_agents', 'wait_agent', 'collaborationinterrupt_agent', 'collaborationlist_agents', 'collaborationwait_agent') or checkpoint_control(payload, root)

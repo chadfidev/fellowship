@@ -30,7 +30,8 @@ class RuntimeTests(unittest.TestCase):
         return r
 
     def hook(self, event, provider='codex', session='s1', **extra):
-        payload = dict(hook_event_name=event, cwd=str(self.repo), session_id=session, **extra)
+        payload = dict(hook_event_name=event, cwd=str(self.repo), session_id=session)
+        payload.update(extra)
         r = subprocess.run([sys.executable, str(SCRIPT), 'hook', '--provider', provider], input=json.dumps(payload), text=True, capture_output=True, env=self.env)
         self.assertEqual(r.returncode, 0, r.stderr)
         return json.loads(r.stdout or '{}')
@@ -143,6 +144,45 @@ class RuntimeTests(unittest.TestCase):
         self.hook('SubagentStop', provider='claude', agent_id='c1', agent_type='legolas')
         self.run_cli('bedtime')
         self.assertEqual(self.run_cli('status')['status'], 'paused')
+
+    def test_child_stop_checkpoints_observed_worktree(self):
+        subprocess.run(['git', '-C', str(self.repo), 'add', '.fellowship/project.json'], check=True, env=self.env)
+        subprocess.run(['git', '-C', str(self.repo), '-c', 'user.name=Fellowship Test', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'fixture'], check=True, env=self.env)
+        other = Path(self.temp.name) / 'child-worktree'
+        subprocess.run(['git', '-C', str(self.repo), 'worktree', 'add', '-qb', 'child', str(other)], check=True, env=self.env)
+        (other / 'child-wip.txt').write_text('preserve me')
+        self.hook('SubagentStart', agent_id='c1')
+        self.hook('PreToolUse', agent_id='c1', cwd=str(other), tool_name='Read', tool_use_id='r1', tool_input={})
+        self.hook('PostToolUse', agent_id='c1', cwd=str(other), tool_name='Read', tool_use_id='r1', tool_input={})
+        self.hook('SubagentStop', agent_id='c1')
+        state = self.run_cli('status')
+        checkpoint = state['checkpoints']['codex:c1']
+        self.assertEqual(Path(checkpoint['worktree']).resolve(), other.resolve())
+        self.assertIn('child-wip.txt', checkpoint['git_status'])
+        self.assertEqual((other / 'child-wip.txt').read_text(), 'preserve me')
+        self.hook('SubagentStart', agent_id='c1')
+        self.hook('PreToolUse', agent_id='c1', cwd=str(other), tool_name='Read', tool_use_id='r2', tool_input={})
+        self.hook('PostToolUse', agent_id='c1', cwd=str(other), tool_name='Read', tool_use_id='r2', tool_input={})
+        subprocess.run(['git', '-C', str(self.repo), 'worktree', 'remove', '--force', str(other)], check=True, env=self.env)
+        result = self.hook('SubagentStop', agent_id='c1')
+        self.assertIn('unconfirmed', result.get('systemMessage', ''))
+        self.run_cli('bedtime')
+        self.assertEqual(self.run_cli('status')['status'], 'stop-unconfirmed')
+        self.assertIn('child-wip.txt', self.run_cli('status')['checkpoints']['codex:c1']['git_status'])
+
+    def test_child_checkpoint_rejects_checkout_in_other_repository(self):
+        self.hook('SubagentStart', agent_id='c1')
+        other = Path(self.temp.name) / 'unrelated'
+        subprocess.run(['git', 'init', '-q', str(other)], check=True, env=self.env)
+        self.run_cli('bedtime')
+        p = self.repo / '.git/fellowship/state.json'
+        state = json.loads(p.read_text())
+        state['sessions']['codex:c1']['worktree'] = str(other)
+        p.write_text(json.dumps(state))
+        result = self.hook('SubagentStop', agent_id='c1')
+        self.assertIn('unconfirmed', result.get('systemMessage', ''))
+        self.assertEqual(self.run_cli('status')['status'], 'stop-unconfirmed')
+        self.assertNotIn('codex:c1', self.run_cli('status')['checkpoints'])
 
     def test_paused_guard_accepts_only_matching_owned_project_helper(self):
         target = self.repo / '.fellowship/scripts/fellowship.py'
