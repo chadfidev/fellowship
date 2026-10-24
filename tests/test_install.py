@@ -30,7 +30,10 @@ class InstallTests(unittest.TestCase):
             roles = [tomllib.loads(p.read_text()) for p in (codex / 'agents').glob('*.toml')]
             self.assertEqual(len(roles), 12)
             self.assertEqual(next(r for r in roles if r['name'] == 'aragorn')['model'], 'gpt-6.1-sol')
-            self.assertEqual(next(r for r in roles if r['name'] == 'frodo')['model'], 'gpt-6-luna')
+            for name in ('bilbo', 'legolas', 'gimli', 'frodo', 'sam'):
+                role = next(r for r in roles if r['name'] == name)
+                self.assertEqual(role['model'], 'gpt-6-luna', name)
+                self.assertEqual(role['model_reasoning_effort'], 'high', name)
             self.assertEqual(next(r for r in roles if r['name'] == 'frodo-important')['model'], 'gpt-6.1-sol')
             self.assertIn('model: opus', (claude / 'agents/aragorn.md').read_text())
             self.assertIn('model: haiku', (claude / 'agents/frodo.md').read_text())
