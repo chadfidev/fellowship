@@ -1,10 +1,10 @@
 # Fellowship: portable agent behavior pack
 
-Version 0.2 · October 24, 2026 · Behavior reference for the installed Codex/Claude setup
+Behavior reference for the installed Codex/Claude setup
 
 Gandalf coordinates; the Fellowship handles bounded assignments. The names identify responsibilities, not models or personalities. Communicate plainly: no fantasy dialogue is required.
 
-This pack defines portable behavior. The current installation targets Codex and Claude Code only; OpenCode and Pi remain untouched. Read `../INSTALLATION.md` in a native skill installation, or the project's `.fellowship/README.md` in an enrolled repo, for implemented capabilities and limits. The approved adoption design remains a design reference, not a live status report. No distributed lock service or remote process supervisor is implemented.
+This pack defines portable behavior. The current installation targets Codex and Claude Code only. An already configured local worker is optional under `models.md`; no Pi integration is installed. Read `../INSTALLATION.md` in a native skill installation, or the project's `.fellowship/README.md` in an enrolled repo, for implemented capabilities and limits. The approved adoption design remains historical. No distributed lock service or remote process supervisor is implemented.
 
 ## Read the smallest useful part
 
@@ -12,7 +12,7 @@ This pack defines portable behavior. The current installation targets Codex and 
 - For model selection intent: [models.md](models.md); edit the source project's `models.json` for actual routing.
 - For an assignment: the relevant role below and [task.md](templates/task.md).
 - For returning to a project: [checkpoint.md](templates/checkpoint.md).
-- For installing and proving this across tools: [adoption-plan.md](adoption-plan.md).
+- For installed behavior and its limits: [../INSTALLATION.md](../INSTALLATION.md) in the native skill, or the project's `.fellowship/README.md`.
 
 | Agent | Responsibility | Load when |
 | --- | --- | --- |
@@ -36,6 +36,6 @@ These are nine responsibilities across ten names. They are available roles, not 
 
 The user evaluates observable outcomes. Agents provide implementation, verification, and review evidence. A passed automated check or another agent's approval does not establish that the user accepts the experience.
 
-## Suggested first pilot
+## First use
 
-Use Agentic Wars' existing instructions, checks, worktrees, and current execution boundary. Do not resume its feature work merely because this pack exists. First prove a small authorized task can move between two tools, survive bedtime, and receive an independent review. Preserve the game's save and running-service decisions separately.
+Describe the coding outcome in a fresh project chat. The main assistant prepares enrollment during authorized work, chooses the smallest useful plan, and returns checked results with independent review. Existing paused work and product/deployment decisions remain at their current boundaries.

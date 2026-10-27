@@ -1,8 +1,25 @@
 {
   "version": 1,
   "profiles": {
-    "strong": {"codex": "gpt-6.1-sol", "claude": "opus", "effort": "high"},
-    "economy": {"codex": "gpt-6-luna", "claude": "haiku", "effort": "high"},
-    "coder": {"codex": "gpt-6-luna", "claude": "haiku", "effort": "high"}
+    "strong": {
+      "codex": "gpt-6.1-sol",
+      "claude": "opus",
+      "effort": "high"
+    },
+    "economy": {
+      "codex": "gpt-6-luna",
+      "claude": "haiku",
+      "effort": "high"
+    },
+    "coder": {
+      "codex": "gpt-6-luna",
+      "claude": "haiku",
+      "effort": "high"
+    },
+    "medium": {
+      "codex": "gpt-6-luna",
+      "claude": "sonnet",
+      "effort": "high"
+    }
   }
 }

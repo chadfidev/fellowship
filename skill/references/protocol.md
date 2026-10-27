@@ -2,7 +2,17 @@
 
 Read this contract and only the role and project context needed for the assignment. Resolve all paths against the actual repository; keep runtime state in that project's existing layout. Use the user's latest instructions and the platform's real permissions. This pack supplies behavior, not additional authority.
 
-Fellowship governs coordination, model routing, handoff, and bedtime. Superpowers supplies relevant development techniques; Ponytail keeps implementations and staffing small. A dispatched worker's approved packet is its brief. Preserve existing user approval instead of restarting approved planning or requesting routine confirmation again. Current user instructions and native managed policy prevail over any skill disagreement. Bedtime takes precedence over a skill's normal instruction to finish its sequence.
+Fellowship governs coordination, model routing, handoff, and bedtime. A dispatched worker's approved packet is its brief. Preserve existing user approval instead of restarting approved planning or requesting routine confirmation again. Current user instructions and native managed policy prevail over any skill disagreement. Bedtime takes precedence over a skill's normal instruction to finish its sequence.
+
+## Start with the outcome
+
+Inspect the current checkout, instructions, approved brief, and execution boundary. Ask only when missing information materially changes the result, introduces meaningful risk, or requires a product decision. Make sensible routine choices and state consequential assumptions briefly. A clear request proceeds directly; an approved brief stays approved.
+
+For a small change, identify a concrete acceptance condition and implement it directly. For multi-step work, keep a short plan; for larger work, save the plan and current checkpoint in the project's existing documentation. Decompose by independently verifiable outcome. Keep task records in that existing system; the task template is a checklist for delegation, not a compulsory document for every edit.
+
+Solve the complete requested problem with the least code: reuse the project's patterns, then the standard library or platform, then existing dependencies. Inspect affected callers, tests, fixtures, configuration, and exports before changing shared behavior. Preserve validation, accessibility, error handling, and protections against data loss. Add a dependency or abstraction only when the required outcome needs it. Leave unrelated improvements alone.
+
+For bugs, failing checks, or unexpected performance, read [debugging.md](debugging.md) before proposing a fix. For bugs and meaningful new behavior, demonstrate a failing regression before the fix when practical, then verify observable behavior. Trivial copy and style changes need no artificial tests. Record any reason a regression cannot be reproduced.
 
 ## Ownership and dispatch
 
@@ -26,7 +36,11 @@ Decompose by independently verifiable outcome, not number of edits. Keep tightly
 
 Workers run relevant checks and record exact commands, revision, environment, exit status, and meaningful results. Missing tools, flaky outcomes, or permission blocks are disclosed; historical results do not become current evidence. Gimli may reproduce checks independently. Tests should prove required behavior, including a failing regression before a bug fix where feasible.
 
+Inspect check output before claiming completion. When appearance or interaction matters, inspect the browser/UI as well as automated results. Repeat affected checks after fixes; repeat expensive unchanged checks only for a concrete unresolved concern. Explain what works, what was checked, and material limitations in ordinary language, without requiring users to learn agent names or Git terminology.
+
 Aragorn reviews implementation and requirements independently of authorship. Approval names the exact base, proposed head, reviewed diff scope, and evidence. An author cannot approve their own change by renaming their role. A reviewer may inspect and run checks but returns source changes to the implementer. After relevant source or base changes, repeat affected checks and review of the exact proposed revision. After integration, run required integration checks; a changed merge result returns through review.
+
+Use this single independent review lifecycle for the complete outcome, scaled to its risk. Review fixes as a changed delta against the prior reviewed revision; preserve the unchanged review evidence. Do not add duplicate reviewer layers or require a chain of specialist agents for routine work. An uncommitted proposal may use an immutable Git tree ID plus its base commit, covering all proposed source and tests, rather than implying dirty files were reviewed at HEAD.
 
 Use existing project merge authority. Where no authority exists, preserve reviewed work in a branch or PR and request the required decision. This pack grants no blanket permission to merge, publish, deploy, spend, delete data, or access another person's credentials. Branch rules, CI, sandboxes, and access controls enforce boundaries where available; prompts alone do not.
 
@@ -45,3 +59,5 @@ Gandalf records each participant as `stopped`, `draining`, or `unreachable`. Pub
 On resume, read the current checkpoint, inspect actual Git state and relevant processes, reconcile ownership, and invalidate evidence affected by later changes. Resume only authorized scope. Retain the bedtime pause until an explicit resume request; scheduled jobs must consult and honor the pause once their adapters implement it.
 
 Keep one compact current checkpoint, separate from historical logs. Bilbo records decisions with their source and status: user-approved, coordinator choice, proposed, or superseded. Preserve the original instructions and existing work during adoption. Share reproducible setup instructions, never credentials or private application data. Record model and task usage when measurable; do not translate subscription usage into invented API costs.
+
+Before completion, remove only identified task-created disposable files and stop verified task-owned temporary processes. Keep final deliverables, useful previews, unfinished work, necessary recovery evidence, and anything whose ownership is uncertain. Report retained material and blocked cleanup accurately.

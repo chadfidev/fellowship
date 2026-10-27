@@ -1,107 +1,89 @@
 # Fellowship
 
-A shared workflow for coding agents in **Codex and Claude Code**: one coordinator, small verifiable tasks, independent review, and a `bedtime` command that checkpoints work and stops new supported tool activity.
+Describe a coding outcome in **Codex or Claude Code**. Fellowship handles proportionate clarification and planning, implementation, debugging, useful tests, independent review, and continuity. Small tasks proceed directly; existing approved briefs stay approved. No agent names, skill commands, Superpowers, or Ponytail installation are required for everyday use.
 
-Fellowship installs native agent profiles and a reusable skill into each application. It pins a copy of its contracts into projects so collaborators can follow the same workflow using their own tools and accounts. No daemon or extra Python package is installed.
+## Install
 
-## Install on another machine
+Requirements: **macOS or Linux, Python 3.11+, Git**, and your own authenticated Codex or Claude Code account. Native Windows is unsupported because the pause helper uses POSIX locking. There is no daemon or extra Python dependency.
 
-Requirements: **macOS or Linux, Python 3.11+, Git**, and the Codex/Claude Code applications you intend to use. Native Windows is not supported by the current POSIX locking implementation. Use your own authenticated accounts; no credentials or subscriptions are included.
-
-Clone into your normal development folder. For example:
+Clone into your normal development folder, then choose the application you want configured:
 
 ```sh
-mkdir -p ~/Development
-cd ~/Development
 git clone https://github.com/chadfidev/fellowship.git
 cd fellowship
 python3 -B -m unittest discover -s tests -v
-python3 install.py install
+python3 -B install.py install --app codex
 ```
 
-The `install` command configures **both** application homes, even if only one application is currently installed. Defaults are `~/.codex` (or `CODEX_HOME`) and `~/.claude`. Override locations when needed:
+For Claude Code instead:
 
 ```sh
-python3 install.py install --codex-home /path/to/codex-home --claude-home /path/to/claude-home
+python3 -B install.py install --app claude
 ```
 
-The installer appends managed instruction/hook entries and preserves unrelated settings, agents and plugins. Ownership receipts prevent overwriting independently changed managed files. Inspect the repository before running it. Native application trust and approval prompts still apply; Fellowship does not approve its own hooks.
+For both, use `--app both`. Without `--app`, the installer chooses the sole existing app home; if the choice is ambiguous, it asks you to select one through the command. It never creates an unselected application's home. Defaults are `~/.codex` (or `CODEX_HOME`) and `~/.claude`; `--codex-home` and `--claude-home` support explicit alternative locations and disposable fixtures.
 
-Open a **fresh chat** in your project after installation. Global instructions tell the assistant to use Fellowship for coding in Git projects, including newly authorized projects intended for Git. Opening a repository alone does not run an installer or launch agents. Project instructions and native policies still apply.
+The installer adds independent copies under each selected home's `skills/fellowship/` and `agents/`, a narrow instruction block, native hooks, and an ownership receipt. Existing accounts, providers, main-model choices, permissions, unrelated instructions, hooks, and plugins are preserved. Review the source before installing. Native trust prompts still apply; in Codex, review new or changed hooks through `/hooks` when requested.
 
-## Enroll a project
+Open a **fresh chat in your project and describe the task**. Global instructions point to the installed skill for coding requests; the skill also describes its relevant activation scope. Unrelated chat and document work stay outside the coding workflow. Skill selection is model behavior, not a guarantee enforced by an installer. No inference runs during installation or fixture tests.
 
-From this source checkout, use the actual project directory:
+## Everyday work
+
+The main assistant checks the actual project, preserves existing instructions and dirty work, and prepares enrollment on the first authorized coding task. New code projects can initialize Git first. There is no installation-time repository scan. Read-only conversations do not authorize enrollment, and enrollment does not resume paused feature work.
+
+A small change needs an acceptance condition; multi-step work gets a short plan, and larger work gets a durable checkpoint. Bugs are reproduced and investigated before fixes. Meaningful behavior gets observable regression checks where practical. Appearance and interaction require browser/UI inspection when relevant. The assistant inspects current results and obtains one independent review of the exact proposed revision, returning fixes through the same review lifecycle.
+
+Enrollment pins contracts in `.fellowship/`, adds native project agents and managed pointers in `AGENTS.md` and `CLAUDE.md`, and preserves existing files. Collaborators can commit the generated setup; personal settings, credentials, and pause state do not travel with it. To enroll or explicitly refresh a snapshot yourself:
 
 ```sh
-python3 install.py onboard --project '/absolute/path/to/repo'
+python3 -B install.py onboard --project '/absolute/path/to/repo'
 ```
 
-The project must already be a Git repository. Enrollment creates `.fellowship/`, native profiles under `.codex/agents/` and `.claude/agents/`, and managed pointers in `AGENTS.md` and `CLAUDE.md`. When needed, it adds narrow ignore exceptions for generated Claude profiles while keeping private Claude state ignored. Review and commit the generated project setup so collaborators receive it. Existing source and dirty work are preserved; enrollment grants no permission to resume a paused feature or publish its files.
+Roles are optional internal responsibilities, not a permanently staffed team. The main assistant coordinates; at most two concurrent coding workers use isolated checkouts, with independent acceptance review. Solo changes do not require a new worktree. See the [behavior contracts](skill/references/START-HERE.md).
 
-The assistant is instructed to enroll a project as part of authorized coding work when needed. You can also run the command explicitly. Nothing automatically scans or modifies all repositories.
+## Models
 
-## Roles and models
+[`models.json`](models.json) is the routing source. Ordinary Codex coordination and work use **Luna/high**; independent review and bounded hard problems use **Sol/high**, with the reason stated. Claude uses **Haiku** for general work, **Sonnet** for medium complexity through the native invocation override, and **Opus** for important work and review. Twelve native profiles per app cover the existing responsibilities; no model entitlement is implied.
 
-| Agent | Job | Profile |
-| --- | --- | --- |
-| Gandalf | Main assistant and coordinator | Strong |
-| Elrond | Planning and design | Strong |
-| Bilbo | Small task briefs and handoffs | Economy |
-| Legolas | Focused scouting and research | Economy |
-| Frodo / Sam | Implementation; at most two concurrent coding workers | Coder |
-| Gimli | Build and verification | Economy |
-| Aragorn | Independent implementation review | Strong |
-| Galadriel | Security review | Strong |
-| Eowyn | User experience and accessibility | Strong |
+The user's selected main-session model remains selected. **Astra and Fable are main-session-only choices** and are forbidden for all children, helpers, reviews, retries, and fallbacks; dispatch must select an allowed child model explicitly when needed. Unavailable models are reported without changing authentication or providers. An already configured Pi/local worker is optional, with the same ownership, checking, and independent review rules; Fellowship installs no Pi platform and launches no models during setup.
 
-Frodo and Sam also have `-important` variants that use the strong profile: **12 native profiles per application**. Roles are available when useful; they are not a continuously running swarm. The main assistant is already Gandalf.
+## Bedtime and continuation
 
-[`models.json`](models.json) controls routing. Defaults are Sol 6.1 / Opus for strong work and GPT-6 Luna / Haiku for economy and ordinary coding. All Codex profiles default to high reasoning effort. These are configurable defaults, not guarantees that an account has those models. Set available native model identifiers before installing; unavailable models must be reported rather than silently replaced or billed through another authentication route. This release retains an explicit Astra restriction in its routing policy.
+Send **`bedtime`** as a standalone user message in an enrolled hooked chat. The assistant stops new assignments and integration, checkpoints promptly, preserves dirty work, and stops reachable owned participants. Review and merging wait for explicit resume.
 
-To change your coder after benchmarks, edit the source `coder` profile, rerun `install`, and explicitly rerun `onboard` for each project snapshot you want refreshed. Reviewers stay strong. Running assignments retain their recorded routing.
+The helper reports `paused` only when registered sessions have stopped and tracked calls have finished. Otherwise it reports `stop-unconfirmed` with unresolved participants. Local worktrees share state in the Git common directory. Dirty file contents stay in their checkout, so preserve that checkout and its current handoff.
 
-## Bedtime and resume
-
-Send the standalone user message **`bedtime`** in an enrolled hooked chat. Gandalf stops dispatch/integration, preserves dirty work and checkpoint metadata, records next steps, and stops reachable owned agents. Review and merging wait.
-
-The local helper reports `paused` only when registered participants have acknowledged stopping and no tracked tool calls remain in flight. Otherwise it reports `stop-unconfirmed`. Local Git worktrees share state in the Git common directory; it is not committed or sent to collaborators.
-
-Send **`resume fellowship`** as a standalone user message to explicitly resume. Longer prose does not clear the pause flag, and an agent cannot self-resume through Bash. From your own terminal you can inspect or control an enrolled checkout:
+Send **`resume fellowship`** as a standalone user message to continue. Ordinary prose does not clear the pause guard; an agent cannot self-resume through Bash. From your own terminal:
 
 ```sh
-python3 /path/to/fellowship/skill/scripts/fellowship.py status --project /path/to/repo
-python3 /path/to/fellowship/skill/scripts/fellowship.py bedtime --project /path/to/repo
-python3 /path/to/fellowship/skill/scripts/fellowship.py resume --project /path/to/repo
+python3 -B skill/scripts/fellowship.py status --project /path/to/repo
+python3 -B skill/scripts/fellowship.py bedtime --project /path/to/repo
+python3 -B skill/scripts/fellowship.py resume --project /path/to/repo
 ```
 
-Checkpoints record revision/status metadata; dirty file contents stay in their checkout. Preserve that checkout and the project's handoff. Resume reconciles live owners, current instructions and actual Git state before continuing the authorized scope.
+These are cooperative local controls. Hooks cover supported loaded events, do not kill arbitrary processes, and do not control unrelated chats, remote machines, scheduled jobs, or application services. Native permissions and hook trust remain in force. See [capabilities and limits](skill/INSTALLATION.md).
 
-## Share with other people's agents
+## Update or uninstall
 
-Share this repository link and commit each project's generated setup. Each person installs their own trusted native hooks and uses their own credentials. Project-local profiles/contracts travel with the project; personal application configuration and pause state do not.
-
-Keep one acknowledged Gandalf per project. Assign independently verifiable outcomes with an owner, base revision, permitted files, acceptance checks and stopping conditions. Concurrent coding workers use separate worktrees or clones and submit branches/PRs. Review the exact implementation revision independently before integration. Another agent may take over coordination only after reconciling active owners; stale-looking records do not prove an owner stopped.
-
-This provides shared contracts and local cooperative controls, **not distributed task locks or cross-machine shutdown**. Native Codex roles inherit their parent sandbox; a read-only persona is not a separate security boundary. Hooks cover supported loaded event/tool paths and do not kill arbitrary processes or manage application services. See [capabilities and limits](skill/INSTALLATION.md).
-
-Superpowers and Ponytail are optional, separately installed tools. When present, Fellowship governs coordination/routing/handoffs/bedtime, Superpowers supplies task-relevant techniques inside the approved packet, and Ponytail keeps changes and staffing small. Existing user approvals carry forward. Neither plugin is bundled or disabled by this repository. OpenCode, Pi, Hermes and local-model adapters are outside this release.
-
-## Update and contribute
-
-Keep your chosen routing changes in a local commit so Git can reconcile upstream updates; pull when your checkout is clean:
+Update a clean source checkout, run its tests, then repeat the selected app's install command. Keep local routing edits in Git so they can be reconciled; modified managed files or instructions need deliberate reconciliation. Project snapshots refresh only through explicit `onboard`; running assignments retain their routing and boundaries.
 
 ```sh
 git pull --ff-only
 python3 -B -m unittest discover -s tests -v
-python3 install.py install
-python3 install.py onboard --project '/absolute/path/to/repo'
+python3 -B install.py install --app codex
 ```
 
-If Git reports divergence or an installer reports a modified managed file, reconcile it deliberately; preserve local work. Project snapshots update only when explicitly refreshed.
+To uninstall from a selected application:
 
-Contributors: read [AGENTS.md](AGENTS.md), keep changes bounded, and run the standard-library test suite above. CI runs the fixture suite on macOS and Linux. Tests exercise disposable repositories and application homes, not real credentials or game saves. [Behavior contracts](skill/references/START-HERE.md) and [installation limits](skill/INSTALLATION.md) describe the shipped workflow; [the adoption design](skill/references/adoption-plan.md) is historical design, not a claim that its deferred phases are implemented.
+```sh
+python3 -B install.py uninstall --app codex
+python3 -B install.py uninstall --app claude
+```
 
-## License
+Uninstall removes unchanged receipt-owned assets, its instruction block, and owned hooks. Edited instruction blocks or hooks stop uninstallation before changes so active pointers cannot dangle. Other independently edited managed files are retained and reported for reconciliation. Unrelated configuration and enrolled project snapshots remain; uninstall does not delete project work or pause/recovery evidence.
 
-[MIT](LICENSE). Fellowship is an independent project and is not affiliated with OpenAI, Anthropic or the owners of the fictional character names. The license covers this repository's original code and documentation, not third-party names, branding or separately installed plugins.
+## Verification and license
+
+Tests use disposable Git repositories and application homes. CI is configured for Python 3.11 on macOS and Linux; see the [verification record](docs/workflow-verification.md) for checks actually run in this change. Host-side activation and hook trust still need a fresh native session. Contributors should read [AGENTS.md](AGENTS.md).
+
+[MIT](LICENSE). Adapted development practices retain the [Superpowers MIT notice](skill/references/SUPERPOWERS-LICENSE.txt); this is attribution, not a runtime dependency. Other separately installed skills are preserved. Fellowship is independent of OpenAI, Anthropic, and the owners of its fictional role names.

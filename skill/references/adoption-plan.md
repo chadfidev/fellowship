@@ -1,5 +1,7 @@
 # Adoption design and implementation sequence
 
+> Historical design, retained for provenance. This is not a current execution plan, review requirement, or permission to resume a pilot. The shared protocol and current installation guide govern the shipped workflow.
+
 ## Accepted intent
 
 The user approved a portable operating kit, one coordinator, bounded task packets, independent strong-model review, current checkpoints, reusable onboarding, and the LOTR roster. The user checks observable outcomes. Bedtime means checkpoint promptly and stop; reviews and merges wait. Hermes is deferred. The coder profile will be revisited after the user's benchmarks.

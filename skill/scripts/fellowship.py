@@ -204,7 +204,7 @@ def hook(payload, provider):
         if state['pause_requested'] and event in ('SessionStart', 'UserPromptSubmit', 'SubagentStart', 'PostToolUse', 'PostToolUseFailure'):
             return context(event, 'Fellowship bedtime is active: checkpoint promptly and stop. Do not start review, merge, or new work. Unacknowledged sessions or in-flight operations remain stop-unconfirmed. Application services are separate. Send the standalone user command resume fellowship to continue.')
         if event == 'SessionStart':
-            return context(event, 'Fellowship project enrolled. Read .fellowship/README.md, preserve the current project execution boundary, and use the named roles only when useful. Superpowers techniques and Ponytail restraint apply inside the approved task. This session is registered for local cooperative pause.')
+            return context(event, 'Fellowship project enrolled. For coding, read .fellowship/README.md and preserve the current project execution boundary. Keep planning and staffing proportionate to the approved outcome. Unrelated chat and document work do not require the coding workflow. This session is registered for local cooperative pause.')
     return {}
 
 
