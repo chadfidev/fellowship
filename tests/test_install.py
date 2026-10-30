@@ -159,7 +159,7 @@ class InstallTests(unittest.TestCase):
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             instructions = codex / 'AGENTS.md'
-            instructions.write_text(instructions.read_text().replace('The main assistant is Gandalf.', 'The main assistant is personally edited.'))
+            instructions.write_text(instructions.read_text().replace('Bedtime means', 'Personally edited: bedtime means'))
             edited = instructions.read_bytes()
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)

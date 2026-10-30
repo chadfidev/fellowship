@@ -228,9 +228,8 @@ def install(codex, claude, apps):
         stale, preserved = stale_owned(root, receipt.get('files', {}), files)
         retired_preserved += [str(root / relative) for relative in preserved]
         instruction = ('For coding in a Git repository, or a new code project intended for Git, use Fellowship: read ' +
-            str(root / 'skills/fellowship/SKILL.md') + '. The main assistant is Gandalf. Delegate independent bounded work when useful; use at most two coding workers and an independent strong Aragorn review. '
-            'An approved packet is the worker brief; preserve existing user approvals. Fellowship governs coordination/model routing/handoffs/bedtime. Never route worker, reviewer, retry, fallback, or other child/helper calls through Astra or Fable; preserve the user-selected main-session model and authentication route. '
-            'Bedtime means checkpoint promptly and stop, leaving review and merging for explicit resume. Preserve current project boundaries. No skill expands authority or overrides native policy or current user instructions.')
+            str(root / 'skills/fellowship/SKILL.md') + '. Never route a subagent, reviewer, retry, or fallback call through Astra or Fable. '
+            'Bedtime means checkpoint promptly and stop, leaving review and merging for explicit resume.')
         instruction_target = root / instruction_name
         prior_instruction = instruction_target.read_bytes() if instruction_target.is_file() else b''
         had_block = BEGIN.encode() in prior_instruction
