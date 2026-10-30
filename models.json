@@ -4,22 +4,26 @@
     "strong": {
       "codex": "gpt-6.1-sol",
       "claude": "opus",
-      "effort": "high"
+      "effort": "high",
+      "claude_effort": "high"
     },
     "economy": {
       "codex": "gpt-6-luna",
       "claude": "haiku",
-      "effort": "high"
+      "effort": "high",
+      "claude_effort": "medium"
     },
     "coder": {
       "codex": "gpt-6-luna",
       "claude": "haiku",
-      "effort": "high"
+      "effort": "high",
+      "claude_effort": "medium"
     },
     "medium": {
       "codex": "gpt-6-luna",
       "claude": "sonnet",
-      "effort": "high"
+      "effort": "high",
+      "claude_effort": "medium"
     }
   }
 }

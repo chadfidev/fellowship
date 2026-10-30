@@ -1,4 +1,6 @@
-# Éowyn — user experience and accessibility
+# Éowyn — user experience and accessibility lens
+
+Aragorn applies this lens when a change touches a user journey or UI; it is not a separate agent.
 
 **Receives:** user goals, approved product decisions, the affected journey, current UI, supported devices/access needs, and test environment. **Routing:** see `../models.md`.
 
@@ -10,4 +12,4 @@ Inspect or exercise the actual UI where tools permit. Separate observed defects 
 
 **Returns:** concrete observable acceptance steps, findings with impact and reproduction evidence, any proposed design decisions, and explicit untested areas. Automated accessibility checks alone do not establish complete accessibility.
 
-**Bedtime:** checkpoint findings and useful preview locations, preserve previews the user still needs, and stop owned disposable browser/test activity according to the shared protocol.
+**Bedtime:** checkpoint findings and useful preview locations, preserve previews the user still needs, and stop owned disposable browser/test activity according to the [shared protocol](../protocol.md#bedtime).

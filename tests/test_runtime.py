@@ -121,8 +121,8 @@ class RuntimeTests(unittest.TestCase):
 
     def test_native_subagent_lifecycle_does_not_leave_spawn_call_inflight(self):
         self.hook('PreToolUse', tool_name='collaborationspawn_agent', tool_use_id='spawn1', tool_input={})
-        self.hook('SubagentStart', agent_id='child1', agent_type='legolas')
-        self.hook('SubagentStop', agent_id='child1', agent_type='legolas')
+        self.hook('SubagentStart', agent_id='child1', agent_type='frodo')
+        self.hook('SubagentStop', agent_id='child1', agent_type='frodo')
         self.hook('Stop')
         self.run_cli('bedtime')
         self.assertEqual(self.run_cli('status')['status'], 'paused')
@@ -137,11 +137,11 @@ class RuntimeTests(unittest.TestCase):
 
     def test_claude_background_child_does_not_reactivate_stopped_parent(self):
         self.hook('UserPromptSubmit', provider='claude', prompt='Do the bounded read-only task.')
-        self.hook('SubagentStart', provider='claude', agent_id='c1', agent_type='legolas')
+        self.hook('SubagentStart', provider='claude', agent_id='c1', agent_type='frodo')
         self.hook('Stop', provider='claude')
         self.hook('PreToolUse', provider='claude', agent_id='c1', tool_name='Read', tool_use_id='c-read', tool_input={})
         self.hook('PostToolUse', provider='claude', agent_id='c1', tool_name='Read', tool_use_id='c-read', tool_input={})
-        self.hook('SubagentStop', provider='claude', agent_id='c1', agent_type='legolas')
+        self.hook('SubagentStop', provider='claude', agent_id='c1', agent_type='frodo')
         self.run_cli('bedtime')
         self.assertEqual(self.run_cli('status')['status'], 'paused')
 

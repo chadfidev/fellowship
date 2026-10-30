@@ -17,18 +17,12 @@ MODEL_PATH = HERE / 'models.json' if (HERE / 'models.json').is_file() else SKILL
 BEGIN, END = '<!-- BEGIN FELLOWSHIP -->', '<!-- END FELLOWSHIP -->'
 ROLES = {
     'gandalf': ('gandalf', 'economy', 'Coordinate routine approved scope, assignments, integration, and bedtime; escalate consequential decisions.'),
-    'elrond': ('elrond', 'economy', 'Plan routine designs and acceptance; use a strong model for consequential architecture or interfaces.'),
-    'bilbo': ('bilbo', 'economy', 'Write bounded task briefs and maintain source-attributed handoffs.'),
-    'legolas': ('legolas', 'economy', 'Answer a focused codebase or primary-source research question.'),
     'frodo': ('workers', 'coder', 'Implement one bounded ordinary task in an owned checkout.'),
-    'sam': ('workers', 'coder', 'Implement one bounded ordinary task independently of peer workers.'),
     'frodo-important': ('workers', 'strong', 'Frodo with a strong model for consequential or ambiguous implementation.'),
-    'sam-important': ('workers', 'strong', 'Sam with a strong model for consequential or ambiguous implementation.'),
-    'gimli': ('gimli', 'economy', 'Run specified isolated checks and report reproducible verification evidence.'),
     'aragorn': ('aragorn', 'strong', 'Review the exact implementation revision independently; return source fixes to its author.'),
-    'galadriel': ('galadriel', 'strong', 'Assess a security-sensitive boundary within the authorized review scope.'),
-    'eowyn': ('eowyn', 'strong', 'Assess observable user experience and accessibility; the user owns product acceptance.')
+    'galadriel': ('galadriel', 'strong', 'Assess a security-sensitive boundary within the authorized review scope.')
 }
+CLAUDE_EFFORTS = ('low', 'medium', 'high', 'xhigh', 'max')
 EVENTS = ['SessionStart', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse', 'SubagentStart', 'SubagentStop', 'Stop', 'SessionEnd']
 
 
@@ -95,6 +89,8 @@ def model_policy():
         row = data['profiles'][profile]
         if not all(isinstance(row.get(key), str) and row[key] and row[key] == row[key].strip() for key in ('codex', 'claude', 'effort')):
             raise ValueError('Each model profile needs nonempty, trimmed codex, claude, and effort strings')
+        if row.get('claude_effort') not in CLAUDE_EFFORTS:
+            raise ValueError(f'Each model profile needs claude_effort set to one of: {", ".join(CLAUDE_EFFORTS)}')
         for provider in ('codex', 'claude'):
             model = row[provider].lower()
             if 'astra' in model or 'fable' in model or model == 'inherit':
@@ -107,23 +103,19 @@ def model_policy():
 def native_roles(provider, reference, policy):
     rendered = {}
     for name, (role, profile, description) in ROLES.items():
-        refs = f'If .fellowship/pack exists in the checkout, read its protocol.md and roles/{role}.md; otherwise read {reference}/protocol.md and {reference}/roles/{role}.md. '
-        instructions = (f'You are {name}, a Fellowship agent. ' + refs +
-            'Read current project instructions and the approved task packet. The packet is your brief; do not restart approved planning. '
-            'Preserve peer work. Only Gandalf dispatches or integrates. Return unresolved decisions to the coordinator. '
-            'Fellowship owns coordination, routing, handoff, and bedtime. '
-            'On bedtime checkpoint promptly and stop; leave review, merges, and new work for explicit resume. '
-            'Use important worker variants for important tasks; changing persona does not establish review independence. '
-            f'Routine coordination and planning use the configured economy model at high effort. For ordinary worker tasks only, medium-complexity Claude work may use the configured medium profile ({policy["profiles"]["medium"]["claude"]}); Codex routine work remains Luna at high effort. Reviewers retain their strong profile, and consequential decisions use strong. Never propagate an override into child/helper calls. ' +
-            'Native permissions and current user instructions prevail. Never route worker, reviewer, retry, fallback, or other child/helper calls through Astra or Fable. Preserve the user-selected main-session model and authentication route.')
+        # Subagents get only their job; routing rules matter only to whoever spawns agents.
+        instructions = (f'You are {name}, a Fellowship agent. Read .fellowship/pack/roles/{role}.md if the checkout has it, otherwise {reference}/roles/{role}.md. '
+            'Your task packet is your brief; do not restart approved planning. Preserve peer edits. Return unresolved decisions to Gandalf. On bedtime, checkpoint and stop.')
+        if name == 'gandalf':
+            instructions += ' Before dispatching, read models.md beside that roles folder. Never route a child, reviewer, retry, or fallback call through Astra or Fable.'
         model = policy['profiles'][profile][provider]
         if provider == 'codex':
             fields = {'name': name, 'description': description, 'model': model,
                       'model_reasoning_effort': policy['profiles'][profile]['effort'], 'developer_instructions': instructions}
             rendered[f'agents/{name}.toml'] = ('# Fellowship managed; regenerate with install.py.\n' + '\n'.join(f'{key} = {json.dumps(value, ensure_ascii=False)}' for key, value in fields.items()) + '\n').encode()
         else:
-            tools = 'Read, Grep, Glob, WebSearch, WebFetch' if name == 'legolas' else 'Read, Grep, Glob' if name in ('elrond', 'aragorn', 'galadriel', 'eowyn') else None
-            front = f'---\nname: {name}\ndescription: {json.dumps(description)}\nmodel: {model}\n'
+            tools = 'Read, Grep, Glob' if name in ('aragorn', 'galadriel') else None
+            front = f'---\nname: {name}\ndescription: {json.dumps(description)}\nmodel: {model}\neffort: {policy["profiles"][profile]["claude_effort"]}\n'
             if tools:
                 front += f'tools: {tools}\n'
             rendered[f'agents/{name}.md'] = (front + '---\n\n<!-- Fellowship managed; regenerate with install.py. -->\n\n' + instructions + '\n').encode()
@@ -156,6 +148,22 @@ def preflight(root, files, receipt_path=None):
             raise ValueError(f'Refusing managed-file symlink: {path}')
         if path.exists() and path.read_bytes() != content and old.get(relative) != sha(path.read_bytes()):
             raise ValueError(f'Unknown or independently modified file; preserve it: {path}')
+
+
+def stale_owned(root, old_files, files):
+    """Previously installed files this release no longer ships: (unedited, to remove; edited, to preserve)."""
+    retired = {relative: digest for relative, digest in old_files.items() if relative not in files and (root / relative).is_file()}
+    safe_owned_paths(root, retired)
+    stale = {relative: digest for relative, digest in retired.items() if sha((root / relative).read_bytes()) == digest}
+    return stale, sorted(set(retired) - set(stale))
+
+
+def remove_stale(root, stale):
+    for relative, digest in stale.items():
+        path = root / relative
+        # Recheck after writing: on a case-insensitive disk a renamed file may now occupy this path.
+        if path.is_file() and sha(path.read_bytes()) == digest:
+            path.unlink()
 
 
 def references_helper(command, script):
@@ -208,6 +216,7 @@ def app_receipt(root):
 def install(codex, claude, apps):
     policy = model_policy()
     plans = []
+    retired_preserved = []
     candidates = {'codex': (Path(codex).resolve(), 'AGENTS.md'), 'claude': (Path(claude).resolve(), 'CLAUDE.md')}
     for provider in apps:
         root, instruction_name = candidates[provider]
@@ -216,6 +225,8 @@ def install(codex, claude, apps):
         files = skill_files(policy)
         files.update(native_roles(provider, root / 'skills/fellowship/references', policy))
         preflight(root, files)
+        stale, preserved = stale_owned(root, receipt.get('files', {}), files)
+        retired_preserved += [str(root / relative) for relative in preserved]
         instruction = ('For coding in a Git repository, or a new code project intended for Git, use Fellowship: read ' +
             str(root / 'skills/fellowship/SKILL.md') + '. The main assistant is Gandalf. Delegate independent bounded work when useful; use at most two coding workers and an independent strong Aragorn review. '
             'An approved packet is the worker brief; preserve existing user approvals. Fellowship governs coordination/model routing/handoffs/bedtime. Never route worker, reviewer, retry, fallback, or other child/helper calls through Astra or Fable; preserve the user-selected main-session model and authentication route. '
@@ -241,10 +252,11 @@ def install(codex, claude, apps):
         if previous_hook is None and command:
             previous_hook = {'type': 'command', 'command': command, 'timeout': 3}
         updated, hook = hook_config(config, root / 'skills/fellowship/scripts/fellowship.py', provider, previous_hook, command)
-        plans.append((provider, root, files, instruction_path, instruction_bytes, settings, updated, hook, instruction_created, prefix, suffix))
-    for provider, root, files, instruction_path, instruction_bytes, settings, updated, hook, instruction_created, prefix, suffix in plans:
+        plans.append((provider, root, files, stale, instruction_path, instruction_bytes, settings, updated, hook, instruction_created, prefix, suffix))
+    for provider, root, files, stale, instruction_path, instruction_bytes, settings, updated, hook, instruction_created, prefix, suffix in plans:
         for relative, content in files.items():
             write_atomic(root / relative, content)
+        remove_stale(root, stale)
         write_atomic(instruction_path, instruction_bytes)
         write_atomic(settings, (json.dumps(updated, indent=2) + '\n').encode())
         begin, end_marker = BEGIN.encode(), END.encode()
@@ -252,7 +264,7 @@ def install(codex, claude, apps):
         block_end = instruction_bytes.index(end_marker, block_start) + len(end_marker)
         block_text = instruction_bytes[block_start:block_end]
         write_atomic(root / 'skills/fellowship/install-receipt.json', (json.dumps({'version': 1, 'files': {p: sha(data) for p, data in files.items()}, 'managed': {'instruction': sha(block_text), 'hook': hook, 'hook_command': hook['command'], 'instruction_created': instruction_created, 'instruction_prefix': prefix.hex(), 'instruction_suffix': suffix.hex()}}, indent=2) + '\n').encode())
-    return {'installed': apps, 'native_profiles_per_app': len(ROLES), 'other_apps_changed': False}
+    return {'installed': apps, 'native_profiles_per_app': len(ROLES), 'other_apps_changed': False, 'retired_preserved': retired_preserved}
 
 def safe_owned_paths(root, files):
     for relative in files:
@@ -398,7 +410,8 @@ Codex/Claude global installs supply lifecycle hooks. A collaborator can load the
     prior = json.loads(receipt_path.read_text()) if receipt_path.exists() else {}
     previous_blocks = prior.get('managed', {}).get('blocks', {})
     preflight(root, files, receipt_path)
-    message = 'Fellowship is installed for this project: read `.fellowship/README.md` before coding, delegating, resuming, or handling bedtime. Preserve the latest project execution boundary; this onboarding does not resume feature work. Approved task packets are worker briefs. Fellowship controls coordination/routing/handoff/bedtime.'
+    stale, preserved = stale_owned(root, prior.get('files', {}), files)
+    message ='Fellowship is installed for this project: read `.fellowship/README.md` before coding, delegating, resuming, or handling bedtime. Preserve the latest project execution boundary; this onboarding does not resume feature work. Approved task packets are worker briefs. Fellowship controls coordination/routing/handoff/bedtime.'
     blocks = []
     for name in ['AGENTS.md', 'CLAUDE.md']:
         target, content = block(root / name, message, expected_hash=previous_blocks.get(name))
@@ -414,12 +427,13 @@ Codex/Claude global installs supply lifecycle hooks. A collaborator can load the
         blocks.append(('.gitignore', target, content, '# BEGIN FELLOWSHIP AGENTS', '# END FELLOWSHIP AGENTS'))
     for relative, content in files.items():
         write_atomic(root / relative, content)
+    remove_stale(root, stale)
     block_digests = {}
     for name, target, content, begin, end in blocks:
         write_atomic(target, content)
         block_digests[name] = block_hash(content, begin, end)
     write_atomic(receipt_path, (json.dumps({'version': 1, 'files': {p: sha(data) for p, data in files.items()}, 'managed': {'blocks': block_digests}}, indent=2) + '\n').encode())
-    return {'project': str(root), 'enrolled': True, 'native_profiles_per_app': len(ROLES), 'application_source_changed': False}
+    return {'project': str(root), 'enrolled': True, 'native_profiles_per_app': len(ROLES), 'application_source_changed': False, 'retired_preserved': preserved}
 
 
 def selected_apps(args):

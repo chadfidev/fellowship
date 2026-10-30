@@ -16,7 +16,7 @@ State lives in the local Git common directory under `fellowship/`, so cooperatin
 
 Hooks do not kill processes, control remote machines, freeze application time, or guarantee interception of every tool path. In-flight tool calls are tracked until their completion event arrives; native Stop/SessionEnd alone does not clear unfinished tool calls. Native trust/managed policy and bypassed or unsupported hook paths may prevent enforcement. Verify actual hook loading in each client. Nothing modifies native approval policy, hook trust databases, or subscription authentication.
 
-Codex role files inherit the parent's permissions; they cannot impose a separate read-only sandbox. Reviewer non-authorship is a behavior rule there. Claude read-only roles have a native file-reading tool allowlist; checks needing execution go to Gimli or the coordinator. Neither provider's roles gain broader permissions than the parent.
+Codex role files inherit the parent's permissions; they cannot impose a separate read-only sandbox. Reviewer non-authorship is a behavior rule there. Claude read-only roles have a native file-reading tool allowlist; checks needing execution go to the coordinator. Neither provider's roles gain broader permissions than the parent.
 
 Use one acknowledged coordinator per project. This is local cooperative coordination, not atomic distributed task claiming. Other people's agents use their own identities and credentials, with branches/PRs and explicit assignment acknowledgment. Enrolling a repo does not grant merge/deploy authority or turn on CI protections.
 

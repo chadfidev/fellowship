@@ -6,7 +6,7 @@ The source `models.json` and native role files rendered from it determine routes
 | --- | --- | --- | --- |
 | strong | `gpt-6.1-sol` | available Opus, resolved through the native model selector | Bounded hard problems, important implementation, and independent review |
 | economy | `gpt-6-luna` | available Haiku, resolved through the native model selector | Clear, bounded, readily checked work |
-| coder | economy initially | economy initially | Ordinary Frodo/Sam work; replace this row after the user's coder benchmarks |
+| coder | economy initially | economy initially | Ordinary Frodo work; replace this row after the user's coder benchmarks |
 | medium | `gpt-6-luna` | `sonnet` | Medium-complexity worker task through a native invocation override |
 
 Exact Claude versions and account availability are resolved at use time. These are preferences, not evidence of entitlement or permission to transfer subscription credentials between products. Use verified native subscription access. Paid API use, extra usage, or a different authentication route needs the applicable user authorization; never silently fall back to a billed API.
@@ -14,18 +14,14 @@ Exact Claude versions and account availability are resolved at use time. These a
 | Role | Default profile |
 | --- | --- |
 | Gandalf | economy; preserve the user's main-session selection |
-| Elrond | economy; escalate consequential design |
-| Bilbo | economy |
-| Legolas | economy |
-| Frodo / Sam | coder |
-| Gimli | economy |
+| Frodo | coder |
+| Frodo-important | strong |
 | Aragorn | strong |
 | Galadriel | strong |
-| Éowyn | strong |
 
 Gandalf assigns strong workers for ambiguous behavior, cross-module changes, security, money, migrations, or data-loss risk. A tiny diff can still be important. Economy agents escalate missing requirements or consequential decisions rather than guessing. Keep the independent reviewer strong even when the worker is cheap or local.
 
-The installed Codex defaults use high effort for strong, economy, and coder profiles. Prefer deliberate effort selection for task-specific overrides when the runtime supports them; effort values are not equivalent across providers. Do not override the user's explicit selection or restriction. If the desired model is unavailable, stop dispatch and ask for or use an already authorized alternative; record it. Avoid silent upgrades or degraded review.
+The installed Codex defaults use high effort for strong, economy, and coder profiles. Claude agents take `claude_effort` instead: medium for drafting and implementation, high for strong review. Prefer deliberate effort selection for task-specific overrides when the runtime supports them; effort values are not equivalent across providers. Do not override the user's explicit selection or restriction. If the desired model is unavailable, stop dispatch and ask for or use an already authorized alternative; record it. Avoid silent upgrades or degraded review.
 
 **Astra and Fable are main-session-only choices when explicitly selected by the user.** Every subagent, helper call, reviewer, retry, and fallback must use another allowed model. When the parent uses either, set the allowed child model explicitly rather than inheriting it. Keep Luna and Sol at high reasoning. An unavailable allowed model is a blocker, not permission to substitute a model or provider.
 

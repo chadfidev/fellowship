@@ -32,18 +32,19 @@ class InstallTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
             import tomllib
             roles = [tomllib.loads(p.read_text()) for p in (codex / 'agents').glob('*.toml')]
-            self.assertEqual(len(roles), 12)
+            self.assertEqual(sorted(r['name'] for r in roles), ['aragorn', 'frodo', 'frodo-important', 'galadriel', 'gandalf'])
             self.assertEqual(next(r for r in roles if r['name'] == 'aragorn')['model'], 'gpt-6.1-sol')
-            self.assertEqual(next(r for r in roles if r['name'] == 'gandalf')['model'], 'gpt-6-luna')
-            self.assertEqual(next(r for r in roles if r['name'] == 'elrond')['model'], 'gpt-6-luna')
-            self.assertIn('medium-complexity Claude work', next(r for r in roles if r['name'] == 'gandalf')['developer_instructions'])
-            for name in ('bilbo', 'legolas', 'gimli', 'frodo', 'sam'):
+            self.assertIn('Astra or Fable', next(r for r in roles if r['name'] == 'gandalf')['developer_instructions'])
+            for name in ('gandalf', 'frodo'):
                 role = next(r for r in roles if r['name'] == name)
                 self.assertEqual(role['model'], 'gpt-6-luna', name)
                 self.assertEqual(role['model_reasoning_effort'], 'high', name)
             self.assertEqual(next(r for r in roles if r['name'] == 'frodo-important')['model'], 'gpt-6.1-sol')
-            self.assertIn('model: opus', (claude / 'agents/aragorn.md').read_text())
-            self.assertIn('model: haiku', (claude / 'agents/frodo.md').read_text())
+            aragorn, frodo = (claude / 'agents/aragorn.md').read_text(), (claude / 'agents/frodo.md').read_text()
+            self.assertIn('model: opus\neffort: high\n', aragorn)
+            self.assertIn('model: haiku\neffort: medium\n', frodo)
+            self.assertNotIn('protocol.md', frodo)
+            self.assertTrue((claude / 'skills/fellowship/references/roles/workers.md').is_file())
             self.assertEqual((codex / 'config.toml').read_text(), 'model = "gpt-6.1-sol"\n')
             self.assertTrue((codex / 'AGENTS.md').read_text().startswith('Existing Codex instructions.\n'))
             self.assertEqual((codex / 'AGENTS.md').read_text().count('<!-- BEGIN FELLOWSHIP -->'), 1)
@@ -108,6 +109,32 @@ class InstallTests(unittest.TestCase):
             policy_path.write_text(json.dumps(changed))
             with self.assertRaisesRegex(ValueError, 'high reasoning effort'):
                 module.model_policy()
+            changed = json.loads(json.dumps(policy))
+            changed['profiles']['coder']['claude_effort'] = 'extreme'
+            policy_path.write_text(json.dumps(changed))
+            with self.assertRaisesRegex(ValueError, 'claude_effort'):
+                module.model_policy()
+
+    def test_reinstall_removes_retired_unedited_files_and_keeps_edited_ones(self):
+        with tempfile.TemporaryDirectory() as temp:
+            claude = Path(temp) / 'claude'
+            claude.mkdir()
+            command = [sys.executable, str(SOURCE / 'install.py'), 'install', '--app', 'claude', '--claude-home', str(claude)]
+            self.assertEqual(subprocess.run(command, capture_output=True, text=True).returncode, 0)
+            receipt_path = claude / 'skills/fellowship/install-receipt.json'
+            receipt = json.loads(receipt_path.read_text())
+            retired, edited = claude / 'agents/elrond.md', claude / 'agents/bilbo.md'
+            retired.write_text('old managed role\n')
+            edited.write_text('user edit\n')
+            receipt['files']['agents/elrond.md'] = __import__('hashlib').sha256(b'old managed role\n').hexdigest()
+            receipt['files']['agents/bilbo.md'] = __import__('hashlib').sha256(b'original\n').hexdigest()
+            receipt_path.write_text(json.dumps(receipt))
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse(retired.exists())
+            self.assertEqual(edited.read_text(), 'user edit\n')
+            self.assertEqual(json.loads(result.stdout)['retired_preserved'], [str((claude / 'agents/bilbo.md').resolve())])
+            self.assertNotIn('agents/elrond.md', json.loads(receipt_path.read_text())['files'])
 
     def test_auto_detection_selects_only_one_existing_home_and_rejects_none(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -357,7 +384,7 @@ class InstallTests(unittest.TestCase):
                 self.assertEqual(r.returncode, 0, r.stderr)
             self.assertTrue((repo / 'AGENTS.md').read_text().startswith('Existing project boundaries.\n'))
             self.assertEqual((repo / 'AGENTS.md').read_text().count('<!-- BEGIN FELLOWSHIP -->'), 1)
-            self.assertEqual(len(list((repo / '.codex/agents').glob('*.toml'))), 12)
+            self.assertEqual(len(list((repo / '.codex/agents').glob('*.toml'))), 5)
             self.assertNotIn(str(SOURCE), (repo / '.codex/agents/frodo.toml').read_text())
             self.assertFalse((repo / '.git/fellowship').exists())
             role_ignored = subprocess.run(['git', '-C', str(repo), 'check-ignore', '-q', '.claude/agents/gandalf.md'])

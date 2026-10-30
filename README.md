@@ -39,11 +39,11 @@ Enrollment pins contracts in `.fellowship/`, adds native project agents and mana
 python3 -B install.py onboard --project '/absolute/path/to/repo'
 ```
 
-Roles are optional internal responsibilities, not a permanently staffed team. The main assistant coordinates; at most two concurrent coding workers use isolated checkouts, with independent acceptance review. Solo changes do not require a new worktree. See the [behavior contracts](skill/references/START-HERE.md).
+Roles are optional internal responsibilities, not a permanently staffed team. The main assistant coordinates; at most two concurrent coding workers use isolated checkouts, with independent acceptance review. Solo changes do not require a new worktree. See the [skill entry point](skill/SKILL.md).
 
 ## Models
 
-[`models.json`](models.json) is the routing source. Ordinary Codex coordination and work use **Luna/high**; independent review and bounded hard problems use **Sol/high**, with the reason stated. Claude uses **Haiku** for general work, **Sonnet** for medium complexity through the native invocation override, and **Opus** for important work and review. Twelve native profiles per app cover the existing responsibilities; no model entitlement is implied.
+[`models.json`](models.json) is the routing source. Ordinary Codex coordination and work use **Luna/high**; independent review and bounded hard problems use **Sol/high**, with the reason stated. Claude uses **Haiku** for general work, **Sonnet** for medium complexity through the native invocation override, and **Opus** for important work and review. Five native profiles per app cover the existing responsibilities; no model entitlement is implied.
 
 The user's selected main-session model remains selected. **Astra and Fable are main-session-only choices** and are forbidden for all children, helpers, reviews, retries, and fallbacks; dispatch must select an allowed child model explicitly when needed. Unavailable models are reported without changing authentication or providers. An already configured Pi/local worker is optional, with the same ownership, checking, and independent review rules; Fellowship installs no Pi platform and launches no models during setup.
 

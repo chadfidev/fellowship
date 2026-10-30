@@ -10,4 +10,4 @@ Distinguish an exploitable defect, a plausible risk needing evidence, and an opt
 
 **Returns:** ranked actionable findings, evidence, affected boundary, remediation outcome, verification limits, and required independent-review provenance where applicable. Security approval supplements Aragorn's implementation review; neither is a guarantee of safety.
 
-**Bedtime:** preserve necessary reproduction/recovery evidence securely, stop owned disposable activity safely, and report partial coverage and unconfirmed operations under the shared protocol.
+**Bedtime:** preserve necessary reproduction/recovery evidence securely, stop owned disposable activity safely, and report partial coverage and unconfirmed operations under the [shared protocol](../protocol.md#bedtime).

@@ -30,11 +30,11 @@ If a coordinator disappears, workers checkpoint and stop at their current bounde
 
 Any active task may become `paused` or `blocked`. Paused tasks need a checkpoint and explicit resume; blocked tasks record the missing input or capability. `accepted` means the exact revision has satisfied technical checks and independent review. `integrated` additionally records the destination revision. Deployment and the user's product acceptance are separate events.
 
-Decompose by independently verifiable outcome, not number of edits. Keep tightly coupled edits with one worker. Delegate when independent work or a separate judgment benefits from its own context; avoid a chain of ceremonial agents for a trivial change. For retrying work, the default is two unsuccessful implement/check or fix/review cycles, then escalation with evidence; the coordinator may authorize a specifically bounded further attempt.
+Decompose by independently verifiable outcome, not number of edits. Keep tightly coupled edits with one worker. Run independent outcomes in parallel, each worker with its own context; that is where extra agents pay off. Use a separate agent for a fresh-eyes review too. Avoid a chain of ceremonial handoffs for coupled or trivial work. For retrying work, the default is two unsuccessful implement/check or fix/review cycles, then escalation with evidence; the coordinator may authorize a specifically bounded further attempt.
 
 ## Verification, review, and integration
 
-Workers run relevant checks and record exact commands, revision, environment, exit status, and meaningful results. Missing tools, flaky outcomes, or permission blocks are disclosed; historical results do not become current evidence. Gimli may reproduce checks independently. Tests should prove required behavior, including a failing regression before a bug fix where feasible.
+Workers run relevant checks and record exact commands, revision, environment, exit status, and meaningful results. Missing tools, flaky outcomes, or permission blocks are disclosed; historical results do not become current evidence. Gandalf may reproduce checks independently. Tests should prove required behavior, including a failing regression before a bug fix where feasible.
 
 Inspect check output before claiming completion. When appearance or interaction matters, inspect the browser/UI as well as automated results. Repeat affected checks after fixes; repeat expensive unchanged checks only for a concrete unresolved concern. Explain what works, what was checked, and material limitations in ordinary language, without requiring users to learn agent names or Git terminology.
 
@@ -58,6 +58,6 @@ Gandalf records each participant as `stopped`, `draining`, or `unreachable`. Pub
 
 On resume, read the current checkpoint, inspect actual Git state and relevant processes, reconcile ownership, and invalidate evidence affected by later changes. Resume only authorized scope. Retain the bedtime pause until an explicit resume request; scheduled jobs must consult and honor the pause once their adapters implement it.
 
-Keep one compact current checkpoint, separate from historical logs. Bilbo records decisions with their source and status: user-approved, coordinator choice, proposed, or superseded. Preserve the original instructions and existing work during adoption. Share reproducible setup instructions, never credentials or private application data. Record model and task usage when measurable; do not translate subscription usage into invented API costs.
+Keep one compact current checkpoint, separate from historical logs. Gandalf records decisions with their source and status: user-approved, coordinator choice, proposed, or superseded. Preserve the original instructions and existing work during adoption. Share reproducible setup instructions, never credentials or private application data. Record model and task usage when measurable; do not translate subscription usage into invented API costs.
 
 Before completion, remove only identified task-created disposable files and stop verified task-owned temporary processes. Keep final deliverables, useful previews, unfinished work, necessary recovery evidence, and anything whose ownership is uncertain. Report retained material and blocked cleanup accurately.
